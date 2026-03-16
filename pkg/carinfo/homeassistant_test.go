@@ -334,8 +334,8 @@ func TestHomeAssistantProvider_GetMileageAt_FallbackBehavior(t *testing.T) {
 	}
 }
 
-// Test getMileageFromHistory directly for more granular testing
-func TestHomeAssistantProvider_getMileageFromHistory_Success(t *testing.T) {
+// Test fromHistory directly for more granular testing
+func TestHomeAssistantProvider_fromHistory_Success(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 		rw.Write([]byte(`[[
 			{"state": "21350", "attributes": {"unit_of_measurement": "km"}}
@@ -346,9 +346,9 @@ func TestHomeAssistantProvider_getMileageFromHistory_Success(t *testing.T) {
 	p := newTestProvider(server.URL, "test-token", "sensor.test_mileage")
 
 	targetTime := time.Date(2026, 2, 28, 23, 59, 59, 0, time.UTC)
-	value, err := p.getMileageFromHistory(targetTime)
+	value, err := p.fromHistory(targetTime)
 	if err != nil {
-		t.Fatalf("getMileageFromHistory failed: %v", err)
+		t.Fatalf("fromHistory failed: %v", err)
 	}
 
 	if value != "21350 km" {
@@ -356,7 +356,7 @@ func TestHomeAssistantProvider_getMileageFromHistory_Success(t *testing.T) {
 	}
 }
 
-func TestHomeAssistantProvider_getMileageFromHistory_Empty(t *testing.T) {
+func TestHomeAssistantProvider_fromHistory_Empty(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 		rw.Write([]byte(`[]`))
 	}))
@@ -365,13 +365,13 @@ func TestHomeAssistantProvider_getMileageFromHistory_Empty(t *testing.T) {
 	p := newTestProvider(server.URL, "test-token", "sensor.test")
 
 	targetTime := time.Date(2026, 2, 28, 23, 59, 59, 0, time.UTC)
-	_, err := p.getMileageFromHistory(targetTime)
+	_, err := p.fromHistory(targetTime)
 	if err == nil {
 		t.Fatalf("Expected error for empty history, got nil")
 	}
 }
 
-func TestHomeAssistantProvider_getMileageFromHistory_InvalidState(t *testing.T) {
+func TestHomeAssistantProvider_fromHistory_InvalidState(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 		rw.Write([]byte(`[[{"state": "unavailable", "attributes": {}}]]`))
 	}))
@@ -380,7 +380,7 @@ func TestHomeAssistantProvider_getMileageFromHistory_InvalidState(t *testing.T) 
 	p := newTestProvider(server.URL, "test-token", "sensor.test")
 
 	targetTime := time.Date(2026, 2, 28, 23, 59, 59, 0, time.UTC)
-	_, err := p.getMileageFromHistory(targetTime)
+	_, err := p.fromHistory(targetTime)
 	if err == nil {
 		t.Fatalf("Expected error for unavailable state, got nil")
 	}
